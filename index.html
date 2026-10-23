@@ -3,172 +3,142 @@
 <head>
     <meta charset="UTF-8">
     <title>GitScout - GitHub finder</title>
-    
-    
-    
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    
-    
-    
-    
-    
-    
-    
+    <meta name="description" content="GitScout — look up any GitHub profile in seconds.">
+
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-<link rel="manifest" href="/site.webmanifest">
-    
-    
-    
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    
-    
-    
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Exo+2&family=Rajdhani&family=Michroma&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    
-    
-    
-     <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    
-    
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+          integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+          crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;800&family=JetBrains+Mono&display=swap" rel="stylesheet">
+
+    <!-- Prevent theme flash: set data-theme before CSS paints -->
+    <script>
+        (function () {
+            try {
+                var saved = localStorage.getItem('gitTheme');
+                var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                document.documentElement.setAttribute(
+                    'data-theme',
+                    saved || (prefersDark ? 'dark' : 'light')
+                );
+            } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'light');
+            }
+        })();
+    </script>
+
     <link rel="stylesheet" href="design.css">
 </head>
 <body>
-    
-    <header class="status">
-        
-        
-    </header>
-    
-    
-    
+
+    <!-- ================= NETWORK STATUS ================= -->
+    <header class="status" id="status" role="status" aria-live="polite"></header>
+
+    <!-- ================= THEME TOGGLE ================= -->
+    <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon" aria-hidden="true"></i>
+    </button>
+
     <main>
-    
-    <div class="container">
-        
-        <div class="head">
+        <div class="container">
 
-    <h2>Git<span class="highlight">Scout</span></h2>
-    
-    <p>Your gateway to GitHub profiles.</p>
-    
-    </div>
+            <!-- ================= HEAD ================= -->
+            <div class="head">
+                <h2>Git<span class="highlight">Scout</span></h2>
+                <p>Your gateway to GitHub profiles.</p>
+            </div>
 
-    <div class="search">
+            <!-- ================= SEARCH ================= -->
+            <form class="search" id="searchForm" autocomplete="off" role="search">
+                <input
+                    type="text"
+                    id="username"
+                    placeholder="Search a GitHub username..."
+                    aria-label="GitHub username"
+                    spellcheck="false"
+                    autocapitalize="none"
+                    autocorrect="off"
+                >
+                <button id="searchBtn" type="submit" aria-label="Search GitHub">
+                    <i class="fa-solid fa-search" aria-hidden="true"></i>
+                </button>
+            </form>
 
-        <input
-            type="text"
-            id="username"
-            placeholder="Search a GitHub username..."
-        >
+            <!-- ================= HISTORY ================= -->
+            <div class="history" id="historyPanel">
+                <div class="recents">
+                    <h3>Recent searches</h3>
+                    <button id="clearHistory" type="button" aria-label="Clear search history">
+                        <i class="fa-solid fa-trash-alt" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <div class="history-list" id="historyList"></div>
+            </div>
 
-        <button id="searchBtn">
-            <i class="fa-solid fa-search"></i> 
-        </button>
+            <!-- ================= LOADER ================= -->
+            <div class="load-cont">
+                <div class="loader" id="loader" role="status" aria-label="Loading"></div>
+            </div>
 
+            <!-- ================= MESSAGE ================= -->
+            <p class="message" id="message" role="alert"></p>
 
-    </div>
-    
-    
-    <div class="history">
-        
-        <div class="recents">
-        
-        <h3>Recent searches </h3>
-        
+            <!-- ================= PROFILE ================= -->
+            <article class="profile-card" id="profileCard">
+
+                <img class="avatar" id="avatar" alt="" width="128" height="128">
+
+                <div class="identity">
+                    <h3 class="name" id="name"></h3>
+                    <a class="login" id="login" target="_blank" rel="noopener noreferrer"></a>
+                </div>
+
+                <div class="badges" id="badges"></div>
+
+                <p class="bio" id="bio"></p>
+
+                <ul class="meta" id="meta"></ul>
+
+                <div class="card-stats">
+                    <div class="sub-card">
+                        <span class="stat-label">Followers</span>
+                        <span class="stat-value followers">0</span>
+                    </div>
+                    <div class="sub-card">
+                        <span class="stat-label">Following</span>
+                        <span class="stat-value following">0</span>
+                    </div>
+                    <div class="sub-card">
+                        <span class="stat-label">Repos</span>
+                        <span class="stat-value repos">0</span>
+                    </div>
+                    <div class="sub-card">
+                        <span class="stat-label">Gists</span>
+                        <span class="stat-value gists">0</span>
+                    </div>
+                </div>
+
+                <div class="githubLink">
+                    <a id="profileLink" target="_blank" rel="noopener noreferrer">
+                        View GitHub profile
+                    </a>
+                </div>
+
+            </article>
+
         </div>
-        
-        <div class="history-list">
-            
-            
-            
-        </div>
-        
-        
-        
-    </div>
-    
-    
-    
-    
-   <div class="load-cont">
-   <div class="loader"></div>
-   </div>
-   
-   
+    </main>
 
-    <div class="profile-card">
-
-        <img class="avatar">
-
-
-        <h3 class="name"></h3>
-
-        <p class="bio"></p>
-        
-        
-        
-        <div class="card-stats">
-            
-        <div class="sub-card">
-        <h3>Followers
-        <p class="followers"></p>
-        </h3>
-         </div>
-         
-         
-         <div class="sub-card">
-         <h3>Following
-        <p class="following"></p>
-          </h3>
-          </div>
-          
-          
-          <div class="sub-card">
-          <h3>Repos
-        <p class="repos"></p>
-          </h3>
-          </div>
-          
-          
-        </div>
-        
-        
-        
-        <div class="githubLink">
-        
-        <a
-    
-    target="_blank"
-    rel="noopener noreferrer"
->
-    View GitHub profile 
-</a>
-
-    </div>
-
-        
-    </div>
-
-</div>
-
-
-
-
-
-
-
-
-
-
-</main>
-
-
-
-<script src="design.js"></script>
-    
-    
+    <script src="design.js"></script>
 </body>
 </html>
